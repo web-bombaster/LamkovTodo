@@ -8,7 +8,6 @@ const TodoItem = (props) => {
 		onTaskCompleteChange,
 	} = props
 	return (
-		// <li className="todo__item todo-item">
 		<li className={`todo-item ${className}`}>
 			<input
 				className="todo-item__checkbox"

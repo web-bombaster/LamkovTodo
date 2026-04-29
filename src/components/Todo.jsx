@@ -13,6 +13,10 @@ const Todo = () => {
 		console.log('Удаляем все задачи')
 	}
 
+	const addTasks = () => {
+		console.log('Задача добавлена!')
+	}
+
 	const deleteTask = (taskId) => {
 		console.log(`Удаляем задачу с id: ${taskId}`)
 	}
@@ -21,11 +25,15 @@ const Todo = () => {
 		console.log(`Задача ${taskId} ${isDone ? 'выполнена' : 'не выполнена'}`)
 	}
 
+	const filterTasks = (query) => {
+		console.log(`Поиск: ${query}`)
+	}
+
 	return (
 		<div className="todo">
 			<h1 className="todo__title">To Do List</h1>
-			<AddTaskForm />
-			<SearchTaskForm />
+			<AddTaskForm addTasks={addTasks} />
+			<SearchTaskForm onSearchInput={filterTasks} />
 			<TodoInfo
 				total={tasks.length}
 				done={tasks.filter(({ isDone }) => isDone).length}
