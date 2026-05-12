@@ -4,6 +4,8 @@ import Field from "./Field"
 const AddTaskForm = (props) => {
 	const {
 		addTasks,
+		newTaskTitle,
+		setNewTaskTitle,
 	} = props
 
 	// Чтобы страница не перезагружалась при отправке формы, напишем свою ф-ю onSubmit
@@ -18,6 +20,8 @@ const AddTaskForm = (props) => {
 				className="todo__field"
 				label="New task title"
 				id="new-task"
+				value={newTaskTitle}
+				onInput={(event) => setNewTaskTitle(event.target.value)}
 			/>
 			<Button type='submit'>Add</Button>
 		</form>
