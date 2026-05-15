@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import AddTaskForm from "./AddTaskForm"
+import Button from "./Button"
 import SearchTaskForm from "./SearchTaskForm"
 import TodoInfo from "./TodoInfo"
 import TodoList from "./TodoList"
@@ -24,6 +25,10 @@ const Todo = () => {
 	const [newTaskTitle, setNewTaskTitle] = useState('')
 
 	const [searchQuery, setSearchQuery] = useState('')
+
+	const newTaskInputRef = useRef(null)
+	const firstIncompleteTaskRef = useRef(null)
+	const firstIncompleteTaskId = tasks.find(({ isDone }) => !isDone)?.id // Находим элемент, у которого isDone = false и получаем его id - т.е. это первая невыполненная задача
 
 	const deleteAllTasks = () => {
 		const isConfirmed = confirm('Вы действительно хотите удалить ВСЕ таски?')
@@ -61,6 +66,7 @@ const Todo = () => {
 			setTasks([...tasks, newTask]) // Через спред оператор разворачиваем прежнее сосотояние tasks и в конце добавляем новый элемент newTask
 			setNewTaskTitle('') // После добавления задачи обнуляем taskTitle через ф-ю setNewTaskTitle
 			setSearchQuery('')
+			newTaskInputRef.current.focus()
 		}
 	}
 
@@ -69,10 +75,14 @@ const Todo = () => {
 		localStorage.setItem('tasks', JSON.stringify(tasks))
 	}, [tasks])
 
+	useEffect(() => {
+		newTaskInputRef.current.focus()
+	}, [])
+
 	const clearSearchQuery = searchQuery.trim().toLowerCase()
 	const filteredTasks = clearSearchQuery.length > 0
 		? tasks.filter(({title}) => title.toLowerCase().includes(clearSearchQuery))
-		: null // Если в поле фильтра будет пусто или только пробелы, то в filteredTasks будет null
+		: null // Если в поле фильтра будет пусто или только пробелы (поиск не активен), то в filteredTasks будет null и в списке отрендерятся исходные задачи из tasks
 
 	return (
 		<div className="todo">
@@ -81,6 +91,7 @@ const Todo = () => {
 				addTasks={addTasks}
 				newTaskTitle={newTaskTitle}
 				setNewTaskTitle={setNewTaskTitle}
+				newTaskInputRef={newTaskInputRef}
 			/>
 			<SearchTaskForm 
 				searchQuery={searchQuery}
@@ -91,11 +102,17 @@ const Todo = () => {
 				done={tasks.filter(({ isDone }) => isDone).length}
 				onDeleteAllButtonClick={deleteAllTasks}
 			/>
+			<Button 
+				onClick={() => firstIncompleteTaskRef.current?.scrollIntoView({ behavior: 'smooth' })}>
+				Показать первый невыполненный таск
+			</Button>
 			<TodoList
 				tasks={tasks}
 				filteredTasks={filteredTasks}
 				onDeleteTaskButtonClick={deleteTask}
 				onTaskCompleteChange={toggleTaskComplete}
+				firstIncompleteTaskRef={firstIncompleteTaskRef}
+				firstIncompleteTaskId={firstIncompleteTaskId}
 			/>
 		</div>
 	)

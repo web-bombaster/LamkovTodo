@@ -6,6 +6,7 @@ const AddTaskForm = (props) => {
 		addTasks,
 		newTaskTitle,
 		setNewTaskTitle,
+		newTaskInputRef,
 	} = props
 
 	// Чтобы страница не перезагружалась при отправке формы, напишем свою ф-ю onSubmit
@@ -22,6 +23,7 @@ const AddTaskForm = (props) => {
 				id="new-task"
 				value={newTaskTitle}
 				onInput={(event) => setNewTaskTitle(event.target.value)}
+				ref={newTaskInputRef}
 			/>
 			<Button type='submit'>+</Button>
 		</form>
