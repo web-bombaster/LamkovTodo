@@ -10,7 +10,7 @@ const TodoInfo = (props) => {
 	return (
 		<div className="todo__info">
 			<div className="todo__total-tasks">
-				Done {done} from {total}
+				Выполнено {done} из {total}
 			</div>
 			{hasTasks && <button className="todo__delete-all-button" type="button" onClick={onDeleteAllButtonClick}>Delete all</button>}
 		</div>
