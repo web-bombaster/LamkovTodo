@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import AddTaskForm from "./AddTaskForm"
 import Button from "./Button"
 import SearchTaskForm from "./SearchTaskForm"
@@ -30,32 +30,32 @@ const Todo = () => {
 	const firstIncompleteTaskRef = useRef(null)
 	const firstIncompleteTaskId = tasks.find(({ isDone }) => !isDone)?.id // Находим элемент, у которого isDone = false и получаем его id - т.е. это первая невыполненная задача
 
-	const deleteAllTasks = () => {
+	const deleteAllTasks = useCallback(() => {
 		const isConfirmed = confirm('Вы действительно хотите удалить ВСЕ таски?')
 		if (isConfirmed) {
 			setTasks([])
 		}
-	}
+	}, [])
 
-	const deleteTask = (taskId) => {
+	const deleteTask = useCallback((taskId) => {
 		setTasks(
 			tasks.filter((task) => task.id !== taskId)
 		)
-	}
+	}, [tasks])
 
-	const toggleTaskComplete = (taskId, isDone) => {
+	const toggleTaskComplete = useCallback((taskId, isDone) => {
 		setTasks(
 			tasks.map(task => {
 				if (task.id === taskId) {
-					return {...task, isDone}
+					return { ...task, isDone }
 				}
 
 				return task
 			})
 		)
-	}
+	}, [tasks])
 
-	const addTasks = () => {
+	const addTasks = useCallback(() => {
 		if (newTaskTitle.trim().length > 0) {
 			const newTask = {
 				id: crypto?.randomUUID() ?? Date.now().toString(), // Генерируем уникальный id более новым или старым способом, если браузер не поддерживает crypto
@@ -63,12 +63,13 @@ const Todo = () => {
 				isDone: false
 			}
 
-			setTasks([...tasks, newTask]) // Через спред оператор разворачиваем прежнее сосотояние tasks и в конце добавляем новый элемент newTask
+			// setTasks([...tasks, newTask]) // Через спред оператор разворачиваем прежнее сосотояние tasks и в конце добавляем новый элемент newTask
+			setTasks((prevTasks) => [...prevTasks, newTask]) // В этой записи избавились от tasks, чтобы не указывать в зависимостях для useCallback
 			setNewTaskTitle('') // После добавления задачи обнуляем taskTitle через ф-ю setNewTaskTitle
 			setSearchQuery('')
 			newTaskInputRef.current.focus()
 		}
-	}
+	}, [newTaskTitle])
 
 	useEffect(() => {
 		// Т.к. данные в localStorage можно хранить только в виде строк, то сохраняем сущность tasks предварительно преобразуя ее в JSON строку через метод stringify
@@ -79,10 +80,17 @@ const Todo = () => {
 		newTaskInputRef.current.focus()
 	}, [])
 
-	const clearSearchQuery = searchQuery.trim().toLowerCase()
-	const filteredTasks = clearSearchQuery.length > 0
-		? tasks.filter(({title}) => title.toLowerCase().includes(clearSearchQuery))
-		: null // Если в поле фильтра будет пусто или только пробелы (поиск не активен), то в filteredTasks будет null и в списке отрендерятся исходные задачи из tasks
+	const filteredTasks = useMemo(() => {
+		const clearSearchQuery = searchQuery.trim().toLowerCase()
+
+		return clearSearchQuery.length > 0
+			? tasks.filter(({ title }) => title.toLowerCase().includes(clearSearchQuery))
+			: null // Если в поле фильтра будет пусто или только пробелы (поиск не активен), то в filteredTasks будет null и в списке отрендерятся исходные задачи из tasks
+	}, [searchQuery, tasks])
+
+	const doneTasks = useMemo(() => {
+		return tasks.filter(({ isDone }) => isDone).length
+	}, [tasks])
 
 	return (
 		<div className="todo">
@@ -93,26 +101,26 @@ const Todo = () => {
 				setNewTaskTitle={setNewTaskTitle}
 				newTaskInputRef={newTaskInputRef}
 			/>
-			<SearchTaskForm 
+			<SearchTaskForm
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 			/>
 			<TodoInfo
 				total={tasks.length}
-				done={tasks.filter(({ isDone }) => isDone).length}
+				done={doneTasks}
 				onDeleteAllButtonClick={deleteAllTasks}
 			/>
-			<Button 
+			<Button
 				onClick={() => firstIncompleteTaskRef.current?.scrollIntoView({ behavior: 'smooth' })}>
 				Показать первый невыполненный таск
 			</Button>
 			<TodoList
 				tasks={tasks}
 				filteredTasks={filteredTasks}
-				onDeleteTaskButtonClick={deleteTask}
-				onTaskCompleteChange={toggleTaskComplete}
 				firstIncompleteTaskRef={firstIncompleteTaskRef}
 				firstIncompleteTaskId={firstIncompleteTaskId}
+				onDeleteTaskButtonClick={deleteTask}
+				onTaskCompleteChange={toggleTaskComplete}
 			/>
 		</div>
 	)
